@@ -94,6 +94,80 @@ func Test_run(t *testing.T) {
 	}
 }
 
+func TestRunDelExtension(t *testing.T) {
+	tests := []struct {
+		name        string
+		cfg         config
+		extNoDelete string
+		nDelete     int
+		nNoDelete   int
+		want        string
+	}{
+		{
+			name: "DeleteExtensionNoMatch",
+			cfg: config{
+				ext: ".log",
+				del: true,
+			},
+			extNoDelete: ".gz",
+			nDelete:     0,
+			nNoDelete:   10,
+			want:        "",
+		},
+		{
+			name: "DeleteExtensionMatch",
+			cfg: config{
+				ext: ".log",
+				del: true,
+			},
+			extNoDelete: "",
+			nDelete:     10,
+			nNoDelete:   0,
+			want:        "",
+		},
+		{
+			name: "DeleteExtensionMixed",
+			cfg: config{
+				ext: ".log",
+				del: true,
+			},
+			extNoDelete: ".gz",
+			nDelete:     0,
+			nNoDelete:   10,
+			want:        "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := &bytes.Buffer{}
+
+			tempDir, cleanup := createTempDir(t, map[string]int{
+				tt.cfg.ext:     tt.nDelete,
+				tt.extNoDelete: tt.nNoDelete,
+			})
+			defer cleanup()
+
+			if err := run(tempDir, w, tt.cfg); err != nil {
+				t.Fatal(err)
+			}
+
+			if w.String() != tt.want {
+				t.Errorf("want %q, got %q\n", tt.want, w.String())
+			}
+
+			filesLeft, err := os.ReadDir(tempDir)
+			if err != nil {
+				t.Error(err)
+			}
+
+			if len(filesLeft) != tt.nNoDelete {
+				t.Errorf("want %d files left, got %d instead\n", tt.nNoDelete, len(filesLeft))
+			}
+		})
+	}
+}
+
 // this helper will be used by a test function that will check if -del flag
 // has deleted the files then delete the temp directory the files were
 // created on
