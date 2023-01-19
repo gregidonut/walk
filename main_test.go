@@ -2,6 +2,9 @@ package main
 
 import (
 	"bytes"
+	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -88,5 +91,31 @@ func Test_run(t *testing.T) {
 				t.Errorf("run() gotOut = %v, want %v", gotOut, tt.wantOut)
 			}
 		})
+	}
+}
+
+// this helper will be used by a test function that will check if -del flag
+// has deleted the files then delete the temp directory the files were
+// created on
+func createTempDir(t *testing.T, files map[string]int) (dirname string, cleanup func()) {
+	t.Helper()
+
+	tempDir, err := os.MkdirTemp("", "walktest")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for k, n := range files {
+		for j := 1; j <= n; j++ {
+			fName := fmt.Sprintf("file%d%s", j, k)
+			fPath := filepath.Join(tempDir, fName)
+			if err := os.WriteFile(fPath, []byte("dummy"), 0643); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+
+	return tempDir, func() {
+		os.RemoveAll(tempDir)
 	}
 }
