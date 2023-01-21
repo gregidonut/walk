@@ -35,10 +35,28 @@ func Test_filterOut(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "FilterExtension/sMatch",
+			args: args{
+				path:    "testdata/dir.log",
+				ext:     []string{".sh", ".log"},
+				minSize: 0,
+			},
+			want: false,
+		},
+		{
 			name: "FilterExtensionNoMatch",
 			args: args{
 				path:    "testdata/dir.log",
 				ext:     []string{".sh"},
+				minSize: 0,
+			},
+			want: true,
+		},
+		{
+			name: "FilterExtension/sNoMatch",
+			args: args{
+				path:    "testdata/dir.log",
+				ext:     []string{".sh", ".mov"},
 				minSize: 0,
 			},
 			want: true,
