@@ -81,11 +81,40 @@ func Test_filterOut(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "FilterExtensionNameLengthMatch",
+			args: args{
+				path:       "testdata/dir.log",
+				ext:        []string{".log"},
+				nameLength: 5,
+			},
+			want: false,
+		},
+		{
 			name: "FilterExtensionNameLengthNoMatch",
 			args: args{
 				path:       "testdata/dir.log",
 				ext:        []string{".log"},
 				nameLength: 10,
+			},
+			want: true,
+		},
+		{
+			name: "FilterExtensionNameLengthSizeMatch",
+			args: args{
+				path:       "testdata/dir.log",
+				ext:        []string{".log"},
+				nameLength: 5,
+				minSize:    10,
+			},
+			want: false,
+		},
+		{
+			name: "FilterExtensionNameLengthSizeNoMatch",
+			args: args{
+				path:       "testdata/dir.log",
+				ext:        []string{".log"},
+				nameLength: 5,
+				minSize:    20,
 			},
 			want: true,
 		},
