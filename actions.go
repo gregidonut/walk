@@ -22,6 +22,11 @@ func filterOut(path string, extensions []string, minSize int64, nameLength int, 
 		return true
 	}
 
+	// checking name length
+	if nameLength != 0 && len(info.Name()) < nameLength {
+		return true
+	}
+
 	// checking if list of extensions
 	if len(extensions) != 0 {
 		for _, ext := range extensions {
@@ -31,11 +36,6 @@ func filterOut(path string, extensions []string, minSize int64, nameLength int, 
 			// an extension has matched so we should list this iteration of the filter out
 			return false
 		}
-		return true
-	}
-
-	// checking name length
-	if len(info.Name()) < nameLength {
 		return true
 	}
 
