@@ -11,7 +11,7 @@ import (
 
 type config struct {
 	// extension to filter out
-	ext string
+	ext []string
 	// min file size
 	size int64
 	// list files
@@ -33,7 +33,7 @@ func main() {
 	del := flag.Bool("del", false, "Delete files")
 	archive := flag.String("archive", "", "Archive directory")
 	// Filter options
-	ext := flag.String("ext", "", "File extension to filter out")
+	ext := flag.Bool("ext", false, "File extension to filter out")
 	size := flag.Int64("size", 0, "Minimum file size")
 	flag.Parse()
 
@@ -50,8 +50,13 @@ func main() {
 		defer f.Close()
 	}
 
+	extensions := make([]string, 0)
+	if *ext {
+		extensions = append(extensions, flag.Args()...)
+	}
+
 	c := config{
-		ext:     *ext,
+		ext:     extensions,
 		size:    *size,
 		list:    *list,
 		del:     *del,
