@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-func filterOut(path string, extensions []string, minSize int64, info os.FileInfo) bool {
+func filterOut(path string, extensions []string, minSize int64, nameLength int, info os.FileInfo) bool {
 	// sad paths return true to simulate a continue statement in a forloop
 	// that is checked by the calling function Run()
 	// in other words if these conditions are met
@@ -22,6 +22,7 @@ func filterOut(path string, extensions []string, minSize int64, info os.FileInfo
 		return true
 	}
 
+	// checking if list of extensions
 	if len(extensions) != 0 {
 		for _, ext := range extensions {
 			if ext != filepath.Ext(path) {
@@ -32,6 +33,12 @@ func filterOut(path string, extensions []string, minSize int64, info os.FileInfo
 		}
 		return true
 	}
+
+	// checking name length
+	if len(info.Name()) < nameLength {
+		return true
+	}
+
 	return false
 }
 

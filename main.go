@@ -14,6 +14,8 @@ type config struct {
 	ext []string
 	// min file size
 	size int64
+	// length of file name
+	nameLength int
 	// list files
 	list bool
 	// delete files
@@ -35,6 +37,7 @@ func main() {
 	// Filter options
 	ext := flag.Bool("ext", false, "File extension to filter out")
 	size := flag.Int64("size", 0, "Minimum file size")
+	nameLength := flag.Int("name-length", 0, "minimum characters in file name")
 	flag.Parse()
 
 	var (
@@ -56,12 +59,13 @@ func main() {
 	}
 
 	c := config{
-		ext:     extensions,
-		size:    *size,
-		list:    *list,
-		del:     *del,
-		wLog:    f,
-		archive: *archive,
+		ext:        extensions,
+		nameLength: *nameLength,
+		size:       *size,
+		list:       *list,
+		del:        *del,
+		wLog:       f,
+		archive:    *archive,
 	}
 
 	if err := run(*root, os.Stdout, c); err != nil {
@@ -77,7 +81,7 @@ func run(root string, out io.Writer, cfg config) error {
 			return err
 		}
 
-		if filterOut(path, cfg.ext, cfg.size, info) {
+		if filterOut(path, cfg.ext, cfg.size, cfg.nameLength, info) {
 			return nil
 		}
 
