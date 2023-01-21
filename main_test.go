@@ -140,7 +140,9 @@ func TestRunDelExtension(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := &bytes.Buffer{}
+			buffer := &bytes.Buffer{}
+			logBuffer := &bytes.Buffer{}
+			tt.cfg.wLog = logBuffer
 
 			tempDir, cleanup := createTempDir(t, map[string]int{
 				tt.cfg.ext:     tt.nDelete,
@@ -148,12 +150,12 @@ func TestRunDelExtension(t *testing.T) {
 			})
 			defer cleanup()
 
-			if err := run(tempDir, w, tt.cfg); err != nil {
+			if err := run(tempDir, buffer, tt.cfg); err != nil {
 				t.Fatal(err)
 			}
 
-			if w.String() != tt.want {
-				t.Errorf("want %q, got %q\n", tt.want, w.String())
+			if buffer.String() != tt.want {
+				t.Errorf("want %q, got %q\n", tt.want, buffer.String())
 			}
 
 			filesLeft, err := os.ReadDir(tempDir)
@@ -163,6 +165,12 @@ func TestRunDelExtension(t *testing.T) {
 
 			if len(filesLeft) != tt.nNoDelete {
 				t.Errorf("want %d files left, got %d instead\n", tt.nNoDelete, len(filesLeft))
+			}
+
+			want := tt.nDelete + 1
+			lines := bytes.Split(logBuffer.Bytes(), []byte("\n"))
+			if len(lines) != want {
+				t.Errorf("want %d log lines, got %d \n", want, len(lines))
 			}
 		})
 	}
