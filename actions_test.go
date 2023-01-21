@@ -80,6 +80,15 @@ func Test_filterOut(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			name: "FilterExtensionNameLengthNoMatch",
+			args: args{
+				path:       "testdata/dir.log",
+				ext:        []string{".log"},
+				nameLength: 10,
+			},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
