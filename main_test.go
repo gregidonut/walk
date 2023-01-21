@@ -44,6 +44,18 @@ func Test_run(t *testing.T) {
 			wantOut: "testdata/dir.log\n",
 		},
 		{
+			name: "FilterExtension/sMatch",
+			args: args{
+				root: "testdata",
+				cfg: config{
+					ext:  []string{".sh", ".log"},
+					size: 0,
+					list: true,
+				},
+			},
+			wantOut: "testdata/dir.log\ntestdata/dir2/script.sh\n",
+		},
+		{
 			name: "FiterSizeMatch",
 			args: args{
 				root: "testdata",
@@ -127,6 +139,17 @@ func TestRunDelExtension(t *testing.T) {
 			want:        "",
 		},
 		{
+			name: "DeleteExtension/sMatch",
+			cfg: config{
+				ext: []string{".log", ".sh"},
+				del: true,
+			},
+			extNoDelete: "",
+			nDelete:     10,
+			nNoDelete:   0,
+			want:        "",
+		},
+		{
 			name: "DeleteExtensionMixed",
 			cfg: config{
 				ext: []string{".log"},
@@ -135,6 +158,17 @@ func TestRunDelExtension(t *testing.T) {
 			extNoDelete: ".gz",
 			nDelete:     0,
 			nNoDelete:   10,
+			want:        "",
+		},
+		{
+			name: "DeleteExtensionMixed",
+			cfg: config{
+				ext: []string{".log", ".sh"},
+				del: true,
+			},
+			extNoDelete: ".gz",
+			nDelete:     0,
+			nNoDelete:   20,
 			want:        "",
 		},
 	}
@@ -171,7 +205,13 @@ func TestRunDelExtension(t *testing.T) {
 				t.Errorf("want %d files left, got %d instead\n", tt.nNoDelete, len(filesLeft))
 			}
 
-			want := tt.nDelete + 1
+			loggedFilesMap := make(map[string]int, 0)
+			for k, v := range filesMap {
+				if v != 0 {
+					loggedFilesMap[k] = v
+				}
+			}
+			want := len(loggedFilesMap)*tt.nDelete + 1
 			lines := bytes.Split(logBuffer.Bytes(), []byte("\n"))
 			if len(lines) != want {
 				t.Errorf("want %d log lines, got %d \n", want, len(lines))
@@ -224,9 +264,27 @@ func TestRunArchive(t *testing.T) {
 			nNoArchive:   10,
 		},
 		{
+			name: "ArchiveExtension/sNoMatch",
+			cfg: config{
+				ext: []string{".log", ".sh"},
+			},
+			extNoArchive: ".gz",
+			nArchive:     0,
+			nNoArchive:   20,
+		},
+		{
 			name: "ArchiveExtensionMatch",
 			cfg: config{
 				ext: []string{".log"},
+			},
+			extNoArchive: "",
+			nArchive:     10,
+			nNoArchive:   0,
+		},
+		{
+			name: "ArchiveExtension/sMatch",
+			cfg: config{
+				ext: []string{".log", ".sh"},
 			},
 			extNoArchive: "",
 			nArchive:     10,
@@ -281,8 +339,22 @@ func TestRunArchive(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if len(filesArchived) != tt.nArchive {
-				t.Errorf("want %d files archived, got %d", tt.nArchive, len(filesArchived))
+			nArchiveMap := make(map[string]int, 0)
+			for k, v := range filesMap {
+				if v != 0 {
+					nArchiveMap[k] = v
+				}
+			}
+
+			wantArchived := func() int {
+				if tt.nArchive == 0 {
+					return tt.nArchive * len(nArchiveMap)
+				}
+				return (tt.nArchive * len(nArchiveMap)) - tt.nNoArchive
+			}
+
+			if len(filesArchived) != wantArchived() {
+				t.Errorf("want %d files archived, got %d", wantArchived(), len(filesArchived))
 			}
 		})
 	}
