@@ -7,9 +7,10 @@ import (
 
 func Test_filterOut(t *testing.T) {
 	type args struct {
-		path    string
-		ext     []string
-		minSize int64
+		path       string
+		ext        []string
+		minSize    int64
+		nameLength int
 	}
 	tests := []struct {
 		name string
@@ -87,7 +88,7 @@ func Test_filterOut(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			got := filterOut(tt.args.path, tt.args.ext, tt.args.minSize, info)
+			got := filterOut(tt.args.path, tt.args.ext, tt.args.minSize, tt.args.nameLength, info)
 
 			if got != tt.want {
 				t.Errorf("filterOut() = %v, want %v", got, tt.want)
