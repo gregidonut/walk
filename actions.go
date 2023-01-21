@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"fmt"
 	"io"
 	"log"
@@ -40,4 +41,68 @@ func delFile(path string, delLogger *log.Logger) error {
 
 	delLogger.Println(path)
 	return nil
+}
+
+func archiveFile(destDir, root, path string) error {
+	targetPath, err := relDirPath(destDir, root, path)
+	if err != nil {
+		return err
+	}
+
+	// making the directory structure in the specified destination
+	if err := os.MkdirAll(filepath.Dir(targetPath), 0755); err != nil {
+		return err
+	}
+
+	return writeToCompressedFile(targetPath, path)
+}
+
+func relDirPath(destDir, root, path string) (string, error) {
+	// making sure no errors from checking specified destination dir info
+	info, err := os.Stat(destDir)
+	if err != nil {
+		return "", err
+	}
+
+	// if destination specified is not a directory return error
+	if !info.IsDir() {
+		return "", fmt.Errorf("%s is not a directory", destDir)
+	}
+
+	// get the relative path from the root specified
+	relDir, err := filepath.Rel(root, filepath.Dir(path))
+	if err != nil {
+		return "", err
+	}
+
+	// string representing the filename with added '.gz' at the end
+	dest := fmt.Sprintf("%s.gz", filepath.Base(path))
+
+	// a full path, with destination dir then relative path (to
+	// preserve dir structure when it wasn't compressed) then the
+	// filename + .gz
+	return filepath.Join(destDir, relDir, dest), nil
+}
+
+func writeToCompressedFile(targetPath, inputPath string) error {
+	out, err := os.OpenFile(targetPath, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	in, err := os.Open(inputPath)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	zw := gzip.NewWriter(out)
+	zw.Name = filepath.Base(inputPath)
+
+	if _, err = io.Copy(zw, in); err != nil {
+		return err
+	}
+
+	return out.Close()
 }
