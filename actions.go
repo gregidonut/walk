@@ -32,7 +32,7 @@ func filterOut(path string, extensions []string, minSize int64, info os.FileInfo
 		}
 		return true
 	}
-	return true
+	return false
 }
 
 func listFile(path string, out io.Writer) error {

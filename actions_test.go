@@ -8,7 +8,7 @@ import (
 func Test_filterOut(t *testing.T) {
 	type args struct {
 		path    string
-		ext     string
+		ext     []string
 		minSize int64
 	}
 	tests := []struct {
@@ -20,7 +20,7 @@ func Test_filterOut(t *testing.T) {
 			name: "FilterNoExtension",
 			args: args{
 				path:    "testdata/dir.log",
-				ext:     "",
+				ext:     make([]string, 0),
 				minSize: 0,
 			},
 			want: false,
@@ -29,7 +29,7 @@ func Test_filterOut(t *testing.T) {
 			name: "FilterExtensionMatch",
 			args: args{
 				path:    "testdata/dir.log",
-				ext:     ".log",
+				ext:     []string{".log"},
 				minSize: 0,
 			},
 			want: false,
@@ -38,7 +38,7 @@ func Test_filterOut(t *testing.T) {
 			name: "FilterExtensionNoMatch",
 			args: args{
 				path:    "testdata/dir.log",
-				ext:     ".sh",
+				ext:     []string{".sh"},
 				minSize: 0,
 			},
 			want: true,
@@ -47,7 +47,7 @@ func Test_filterOut(t *testing.T) {
 			name: "FilterExtensionSizeMatch",
 			args: args{
 				path:    "testdata/dir.log",
-				ext:     ".log",
+				ext:     []string{".log"},
 				minSize: 10,
 			},
 			want: false,
@@ -56,7 +56,7 @@ func Test_filterOut(t *testing.T) {
 			name: "FilterExtensionSizeNoMatch",
 			args: args{
 				path:    "testdata/dir.log",
-				ext:     ".log",
+				ext:     []string{".log"},
 				minSize: 20,
 			},
 			want: true,

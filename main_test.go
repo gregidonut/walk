@@ -24,7 +24,7 @@ func Test_run(t *testing.T) {
 			args: args{
 				root: "testdata",
 				cfg: config{
-					ext:  "",
+					ext:  make([]string, 0),
 					size: 0,
 					list: true,
 				},
@@ -36,7 +36,7 @@ func Test_run(t *testing.T) {
 			args: args{
 				root: "testdata",
 				cfg: config{
-					ext:  ".log",
+					ext:  []string{".log"},
 					size: 0,
 					list: true,
 				},
@@ -48,7 +48,7 @@ func Test_run(t *testing.T) {
 			args: args{
 				root: "testdata",
 				cfg: config{
-					ext:  ".log",
+					ext:  []string{".log"},
 					size: 10,
 					list: true,
 				},
@@ -60,7 +60,7 @@ func Test_run(t *testing.T) {
 			args: args{
 				root: "testdata",
 				cfg: config{
-					ext:  ".log",
+					ext:  []string{".log"},
 					size: 20,
 					list: true,
 				},
@@ -72,7 +72,7 @@ func Test_run(t *testing.T) {
 			args: args{
 				root: "testdata",
 				cfg: config{
-					ext:  ".gz",
+					ext:  []string{".gz"},
 					size: 0,
 					list: true,
 				},
@@ -107,7 +107,7 @@ func TestRunDelExtension(t *testing.T) {
 		{
 			name: "DeleteExtensionNoMatch",
 			cfg: config{
-				ext: ".log",
+				ext: []string{".log"},
 				del: true,
 			},
 			extNoDelete: ".gz",
@@ -118,7 +118,7 @@ func TestRunDelExtension(t *testing.T) {
 		{
 			name: "DeleteExtensionMatch",
 			cfg: config{
-				ext: ".log",
+				ext: []string{".log"},
 				del: true,
 			},
 			extNoDelete: "",
@@ -129,7 +129,7 @@ func TestRunDelExtension(t *testing.T) {
 		{
 			name: "DeleteExtensionMixed",
 			cfg: config{
-				ext: ".log",
+				ext: []string{".log"},
 				del: true,
 			},
 			extNoDelete: ".gz",
@@ -145,10 +145,13 @@ func TestRunDelExtension(t *testing.T) {
 			logBuffer := &bytes.Buffer{}
 			tt.cfg.wLog = logBuffer
 
-			tempDir, cleanup := createTempDir(t, map[string]int{
-				tt.cfg.ext:     tt.nDelete,
-				tt.extNoDelete: tt.nNoDelete,
-			})
+			filesMap := make(map[string]int, 0)
+			for _, e := range tt.cfg.ext {
+				filesMap[e] = tt.nDelete
+			}
+			filesMap[tt.extNoDelete] = tt.nNoDelete
+
+			tempDir, cleanup := createTempDir(t, filesMap)
 			defer cleanup()
 
 			if err := run(tempDir, buffer, tt.cfg); err != nil {
@@ -214,7 +217,7 @@ func TestRunArchive(t *testing.T) {
 		{
 			name: "ArchiveExtensionNoMatch",
 			cfg: config{
-				ext: ".log",
+				ext: []string{".log"},
 			},
 			extNoArchive: ".gz",
 			nArchive:     0,
@@ -223,7 +226,7 @@ func TestRunArchive(t *testing.T) {
 		{
 			name: "ArchiveExtensionMatch",
 			cfg: config{
-				ext: ".log",
+				ext: []string{".log"},
 			},
 			extNoArchive: "",
 			nArchive:     10,
@@ -232,7 +235,7 @@ func TestRunArchive(t *testing.T) {
 		{
 			name: "ArchiveExtensionMixed",
 			cfg: config{
-				ext: ".log",
+				ext: []string{".log"},
 			},
 			extNoArchive: ".gz",
 			nArchive:     5,
@@ -243,10 +246,14 @@ func TestRunArchive(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			buffer := &bytes.Buffer{}
-			tempDir, cleanup := createTempDir(t, map[string]int{
-				tt.cfg.ext:      tt.nArchive,
-				tt.extNoArchive: tt.nNoArchive,
-			})
+
+			filesMap := make(map[string]int, 0)
+			for _, e := range tt.cfg.ext {
+				filesMap[e] = tt.nArchive
+			}
+			filesMap[tt.extNoArchive] = tt.nNoArchive
+
+			tempDir, cleanup := createTempDir(t, filesMap)
 			defer cleanup()
 
 			archiveDir, cleanupArchive := createTempDir(t, nil)
